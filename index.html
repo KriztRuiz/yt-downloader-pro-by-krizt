@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>YouTube Downloader</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div class="app">
+    <header class="top">
+      <h1>YouTube Downloader</h1>
+      <p class="muted">Windows puro • Máxima calidad • Progreso real</p>
+    </header>
+
+    <section class="card">
+      <label class="lbl">URL</label>
+      <input id="url" type="text" placeholder="Pega la URL (youtube.com, youtu.be, playlist, shorts…)" />
+
+      <div class="row">
+        <div class="col">
+          <label class="lbl">Carpeta de salida</label>
+          <div class="row">
+            <button id="pickOut" class="btn">Elegir…</button>
+            <span id="outPath" class="path">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col">
+          <label class="lbl">Cookies</label>
+          <select id="cookiesMode" class="sel">
+            <option value="none">No usar cookies</option>
+            <option value="browser:chrome">Usar Chrome (cookies del navegador)</option>
+            <option value="browser:edge">Usar Edge (cookies del navegador)</option>
+            <option value="browser:firefox">Usar Firefox (cookies del navegador)</option>
+            <option value="file">Importar cookies.txt</option>
+          </select>
+          <div class="row mt8">
+            <button id="pickCookies" class="btn btn-ghost" disabled>Seleccionar cookies.txt…</button>
+            <span id="cookiesPath" class="path">—</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mt12">
+        <button id="btnVideo" class="btn btn-primary">Descargar Video (máxima calidad)</button>
+        <button id="btnAudio" class="btn">Descargar Audio (máxima calidad)</button>
+        <button id="btnCancel" class="btn btn-danger" disabled>Cancelar</button>
+      </div>
+
+      <div class="progressWrap mt12">
+        <div class="progressBar">
+          <div id="bar" class="progressFill" style="width:0%"></div>
+        </div>
+        <div class="row mt8">
+          <span id="meta" class="muted">—</span>
+          <span id="pct" class="muted">0%</span>
+        </div>
+      </div>
+
+      <p id="status" class="status">Listo.</p>
+
+      <details class="logs">
+        <summary>Ver logs</summary>
+        <pre id="logBox"></pre>
+      </details>
+    </section>
+  </div>
+
+  <script src="renderer.js"></script>
+</body>
+</html>

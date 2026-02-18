@@ -1,0 +1,57 @@
+{
+  "name": "yt-downloader-pro-by-krizt",
+  "version": "1.0.0",
+  "description": "YouTube Downloader (Windows) - máxima calidad con yt-dlp + ffmpeg",
+  "main": "main.js",
+  "author": "Cristian Ruiz",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "dev": "electron .",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "^40.4.1",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "com.cristian.ytdownloaderpro",
+    "productName": "YouTube Downloader Pro",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer.js",
+      "index.html",
+      "style.css",
+      "help.html",
+      "bin/**/*",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "bin",
+        "to": "bin"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "assets/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "YouTube Downloader Pro"
+    }
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.16"
+  }
+}
