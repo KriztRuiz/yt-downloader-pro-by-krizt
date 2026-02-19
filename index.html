@@ -1,74 +1,72 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <meta charset="UTF-8" />
-  <title>YouTube Downloader</title>
-  <link rel="stylesheet" href="style.css" />
+
+<meta charset="UTF-8">
+<title>YouTube Downloader</title>
+
+<link rel="stylesheet" href="style.css">
+
 </head>
 
 <body>
-  <div class="app">
-    <header class="top">
-      <h1>YouTube Downloader</h1>
-      <p class="muted">Windows puro • Máxima calidad • Progreso real</p>
-    </header>
 
-    <section class="card">
-      <label class="lbl">URL</label>
-      <input id="url" type="text" placeholder="Pega la URL (youtube.com, youtu.be, playlist, shorts…)" />
+<h2>YouTube Downloader</h2>
 
-      <div class="row">
-        <div class="col">
-          <label class="lbl">Carpeta de salida</label>
-          <div class="row">
-            <button id="pickOut" class="btn">Elegir…</button>
-            <span id="outPath" class="path">—</span>
-          </div>
-        </div>
-      </div>
+<!-- URL input for media downloads -->
+<input
+  id="url"
+  type="text"
+  placeholder="Pega la URL"
+  style="width: 100%"
+/>
 
-      <div class="row">
-        <div class="col">
-          <label class="lbl">Cookies</label>
-          <select id="cookiesMode" class="sel">
-            <option value="none">No usar cookies</option>
-            <option value="browser:chrome">Usar Chrome (cookies del navegador)</option>
-            <option value="browser:edge">Usar Edge (cookies del navegador)</option>
-            <option value="browser:firefox">Usar Firefox (cookies del navegador)</option>
-            <option value="file">Importar cookies.txt</option>
-          </select>
-          <div class="row mt8">
-            <button id="pickCookies" class="btn btn-ghost" disabled>Seleccionar cookies.txt…</button>
-            <span id="cookiesPath" class="path">—</span>
-          </div>
-        </div>
-      </div>
+<!-- Select the type of media to download: video or audio -->
+<label for="kind">Tipo:</label>
+<select id="kind">
+  <option value="video" selected>Video</option>
+  <option value="audio">Audio</option>
+</select>
 
-      <div class="row mt12">
-        <button id="btnVideo" class="btn btn-primary">Descargar Video (máxima calidad)</button>
-        <button id="btnAudio" class="btn">Descargar Audio (máxima calidad)</button>
-        <button id="btnCancel" class="btn btn-danger" disabled>Cancelar</button>
-      </div>
+<!-- Select the desired output format. The available formats update
+     dynamically based on the selected kind in renderer.js -->
+<label for="format">Formato:</label>
+<select id="format"></select>
 
-      <div class="progressWrap mt12">
-        <div class="progressBar">
-          <div id="bar" class="progressFill" style="width:0%"></div>
-        </div>
-        <div class="row mt8">
-          <span id="meta" class="muted">—</span>
-          <span id="pct" class="muted">0%</span>
-        </div>
-      </div>
+<br /><br />
 
-      <p id="status" class="status">Listo.</p>
+<!-- Trigger the download based on the selected options -->
+<button id="download-btn">Descargar</button>
 
-      <details class="logs">
-        <summary>Ver logs</summary>
-        <pre id="logBox"></pre>
-      </details>
-    </section>
-  </div>
+<p id="status"></p>
 
-  <script src="renderer.js"></script>
+<hr />
+
+<h2>Conversor de medios</h2>
+
+<label for="input-file">Archivo de entrada:</label>
+<input id="input-file" type="file" />
+
+<label for="convert-format">Convertir a:</label>
+<select id="convert-format">
+  <option value="mp3">MP3 (audio)</option>
+  <option value="wav">WAV (audio)</option>
+  <option value="mp4">MP4 (video)</option>
+  <option value="mkv">MKV (video)</option>
+  <option value="png">PNG (imagen)</option>
+  <option value="jpg">JPG (imagen)</option>
+</select>
+
+<label for="output-file">Archivo de salida:</label>
+<input id="output-file" type="text" placeholder="Ruta de salida" style="width: 100%" />
+
+<button id="convert-btn">Convertir</button>
+
+<p id="convert-status"></p>
+
+<script src="renderer.js"></script>
+
 </body>
+
 </html>

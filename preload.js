@@ -1,15 +1,17 @@
-const { contextBridge, ipcRenderer } = require("electron");
+const { contextBridge, ipcRenderer } = require('electron');
 
-contextBridge.exposeInMainWorld("api", {
-  pickOutputDir: () => ipcRenderer.invoke("pick-output-dir"),
-  pickCookiesFile: () => ipcRenderer.invoke("pick-cookies-file"),
+contextBridge.exposeInMainWorld('api', {
+  downloadMedia: (options) => ipcRenderer.invoke('download-media', options),
 
-  startDownload: (payload) => ipcRenderer.invoke("start-download", payload),
-  cancelDownload: (jobId) => ipcRenderer.invoke("cancel-download", jobId),
+  convertMedia: (options) => ipcRenderer.invoke('convert-media', options),
 
-  onProgress: (cb) => ipcRenderer.on("dl-progress", (_, data) => cb(data)),
-  onLog: (cb) => ipcRenderer.on("dl-log", (_, data) => cb(data)),
-  onDone: (cb) => ipcRenderer.on("dl-done", (_, data) => cb(data)),
-  onError: (cb) => ipcRenderer.on("dl-error", (_, data) => cb(data)),
-  onCanceled: (cb) => ipcRenderer.on("dl-canceled", (_, data) => cb(data)),
+  onDownloadProgress: (callback) => {
+    ipcRenderer.on('download-progress', (_event, data) => callback(data));
+  },
+
+  onConvertProgress: (callback) => {
+    ipcRenderer.on('convert-progress', (_event, data) => callback(data));
+  },
+
+  pickOutputDir: () => ipcRenderer.invoke('pick-output-dir'),
 });

@@ -1,211 +1,123 @@
-const $ = (id) => document.getElementById(id);
+// DOM references
+const urlInput = document.getElementById('url');
+const status = document.getElementById('status');
+const kindSelect = document.getElementById('kind');
+const formatSelect = document.getElementById('format');
+const downloadBtn = document.getElementById('download-btn');
 
-const urlInput = $("url");
-const statusEl = $("status");
-const outPathEl = $("outPath");
-const cookiesModeEl = $("cookiesMode");
-const pickCookiesBtn = $("pickCookies");
-const cookiesPathEl = $("cookiesPath");
+const inputFile = document.getElementById('input-file');
+const outputFile = document.getElementById('output-file');
+const convertFormat = document.getElementById('convert-format');
+const convertBtn = document.getElementById('convert-btn');
+const convertStatus = document.getElementById('convert-status');
 
-const btnVideo = $("btnVideo");
-const btnAudio = $("btnAudio");
-const btnCancel = $("btnCancel");
+// Define available formats for each kind. This can be extended as
+// additional formats are supported by yt‑dlp and ffmpeg.
+const formatOptions = {
+  video: [
+    { value: '', label: 'Automático' },
+    { value: 'mp4', label: 'MP4' },
+    { value: 'mkv', label: 'MKV' },
+    { value: 'webm', label: 'WEBM' },
+  ],
+  audio: [
+    { value: '', label: 'Automático (mp3)' },
+    { value: 'mp3', label: 'MP3' },
+    { value: 'aac', label: 'AAC' },
+    { value: 'm4a', label: 'M4A' },
+    { value: 'opus', label: 'OPUS' },
+  ],
+};
 
-const bar = $("bar");
-const pct = $("pct");
-const meta = $("meta");
-const logBox = $("logBox");
-
-let currentJobId = null;
-
-function setStatus(msg) {
-  statusEl.textContent = msg;
+// Populate the format dropdown based on the selected kind
+function updateFormatOptions() {
+  const kind = kindSelect.value;
+  const opts = formatOptions[kind];
+  formatSelect.innerHTML = '';
+  opts.forEach(({ value, label }) => {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = label;
+    formatSelect.appendChild(option);
+  });
 }
 
-function setRunning(running) {
-  btnVideo.disabled = running;
-  btnAudio.disabled = running;
-  btnCancel.disabled = !running;
-}
-
-function resetProgress() {
-  bar.style.width = "0%";
-  pct.textContent = "0%";
-  meta.textContent = "—";
-}
-
-function appendLog(line) {
-  logBox.textContent += line + "\n";
-  logBox.scrollTop = logBox.scrollHeight;
-}
-
-function getCookiesConfig() {
-  const v = cookiesModeEl.value;
-
-  if (v === "none") return { mode: "none" };
-
-  if (v.startsWith("browser:")) {
-    return { mode: "browser", browser: v.split(":")[1] };
-  }
-
-  if (v === "file") {
-    const p = cookiesPathEl.dataset.path || "";
-    return { mode: "file", filePath: p };
-  }
-
-  return { mode: "none" };
-}
-
-function validateUrl(u) {
-  const s = (u || "").trim();
-  if (!s) return { ok: false, msg: "Pega una URL." };
-  try {
-    // Acepta youtu.be, youtube.com, music.youtube.com, etc.
-    new URL(s);
-    return { ok: true, url: s };
-  } catch {
-    return { ok: false, msg: "URL inválida." };
-  }
-}
-
-// Persistencia simple
-function savePrefs() {
-  const prefs = {
-    outDir: outPathEl.dataset.path || "",
-    cookiesMode: cookiesModeEl.value,
-    cookiesFile: cookiesPathEl.dataset.path || "",
-  };
-  localStorage.setItem("prefs", JSON.stringify(prefs));
-}
-function loadPrefs() {
-  try {
-    const prefs = JSON.parse(localStorage.getItem("prefs") || "{}");
-    if (prefs.outDir) {
-      outPathEl.textContent = prefs.outDir;
-      outPathEl.dataset.path = prefs.outDir;
-    }
-    if (prefs.cookiesMode) cookiesModeEl.value = prefs.cookiesMode;
-    if (prefs.cookiesFile) {
-      cookiesPathEl.textContent = prefs.cookiesFile;
-      cookiesPathEl.dataset.path = prefs.cookiesFile;
-    }
-  } catch {}
-}
-
-// --- UI events
-$("pickOut").addEventListener("click", async () => {
-  const dir = await window.api.pickOutputDir();
-  if (!dir) return;
-  outPathEl.textContent = dir;
-  outPathEl.dataset.path = dir;
-  savePrefs();
-});
-
-cookiesModeEl.addEventListener("change", () => {
-  const needsFile = cookiesModeEl.value === "file";
-  pickCookiesBtn.disabled = !needsFile;
-  if (!needsFile) {
-    cookiesPathEl.textContent = "—";
-    cookiesPathEl.dataset.path = "";
-  }
-  savePrefs();
-});
-
-pickCookiesBtn.addEventListener("click", async () => {
-  const fp = await window.api.pickCookiesFile();
-  if (!fp) return;
-  cookiesPathEl.textContent = fp;
-  cookiesPathEl.dataset.path = fp;
-  savePrefs();
-});
-
-btnCancel.addEventListener("click", async () => {
-  if (!currentJobId) return;
-  await window.api.cancelDownload(currentJobId);
-});
-
-async function start(kind) {
-  const v = validateUrl(urlInput.value);
-  if (!v.ok) {
-    setStatus(v.msg);
+// Handle download button click
+async function handleDownload() {
+  const url = urlInput.value.trim();
+  if (!url) {
+    status.innerText = 'Por favor ingresa una URL válida';
     return;
   }
-
-  const outDir = outPathEl.dataset.path || "";
-  if (!outDir) {
-    setStatus("Selecciona una carpeta de salida.");
-    return;
-  }
-
-  const cookies = getCookiesConfig();
-  if (cookies.mode === "file" && !cookies.filePath) {
-    setStatus("Selecciona tu cookies.txt o cambia el modo de cookies.");
-    return;
-  }
-
-  logBox.textContent = "";
-  resetProgress();
-  setRunning(true);
-  setStatus("Iniciando descarga…");
-
+  const kind = kindSelect.value;
+  const format = formatSelect.value || null;
+  status.innerText = 'Iniciando descarga...';
   try {
-    currentJobId = await window.api.startDownload({
-      url: v.url,
-      kind,
-      outDir,
-      cookies,
-    });
-    setStatus(`Descargando (${kind})…`);
+    await window.api.downloadMedia({ url, kind, format });
+    status.innerText = 'Descarga completada';
   } catch (err) {
-    setRunning(false);
-    currentJobId = null;
-    setStatus(err?.message || String(err));
+    status.innerText = err;
   }
 }
 
-btnVideo.addEventListener("click", () => start("video"));
-btnAudio.addEventListener("click", () => start("audio"));
+// Handle conversion button click
+async function handleConvert() {
+  const file = inputFile.files && inputFile.files[0];
+  if (!file) {
+    convertStatus.innerText = 'Selecciona un archivo de entrada';
+    return;
+  }
+  const output = outputFile.value.trim();
+  if (!output) {
+    convertStatus.innerText = 'Ingresa una ruta de salida';
+    return;
+  }
+  // Determine ffmpeg arguments based on format. We keep this simple:
+  // ffmpeg will infer codecs from the output extension. For more
+  // advanced conversions specify codecs in extraArgs.
+  const fmt = convertFormat.value;
+  let extraArgs = [];
+  switch (fmt) {
+    case 'mp3':
+      extraArgs = ['-vn', '-codec:a', 'libmp3lame'];
+      break;
+    case 'wav':
+      extraArgs = ['-vn', '-codec:a', 'pcm_s16le'];
+      break;
+    case 'mp4':
+    case 'mkv':
+      // Copy video/audio streams; remux container
+      extraArgs = ['-codec', 'copy'];
+      break;
+    case 'png':
+    case 'jpg':
+      // Extract first frame as image
+      extraArgs = ['-an', '-vframes', '1'];
+      break;
+    default:
+      extraArgs = [];
+  }
+  convertStatus.innerText = 'Iniciando conversión...';
+  try {
+    await window.api.convertMedia({ inputPath: file.path, outputPath: output, extraArgs });
+    convertStatus.innerText = 'Conversión completada';
+  } catch (err) {
+    convertStatus.innerText = err;
+  }
+}
 
-// --- IPC events
-window.api.onProgress((data) => {
-  if (!currentJobId || data.jobId !== currentJobId) return;
-
-  const percent = Math.max(0, Math.min(100, data.percent || 0));
-  bar.style.width = `${percent}%`;
-  pct.textContent = `${percent.toFixed(1)}%`;
-
-  const parts = [];
-  if (data.speed) parts.push(`Vel: ${data.speed}/s`);
-  if (data.eta) parts.push(`ETA: ${data.eta}`);
-  meta.textContent = parts.length ? parts.join(" • ") : "—";
+// Progress listeners update the status elements. These are
+// optional; if the main process does not emit progress then
+// nothing will be displayed.
+window.api.onDownloadProgress((progress) => {
+  status.innerText = `${progress.percent.toFixed(2)}% • ${progress.speed} • ETA ${progress.eta}`;
+});
+window.api.onConvertProgress((progress) => {
+  convertStatus.innerText = `${progress.percent.toFixed(2)}% • ${progress.speed} • ETA ${progress.eta}`;
 });
 
-window.api.onLog((data) => {
-  if (!currentJobId || data.jobId !== currentJobId) return;
-  appendLog(data.line);
-});
-
-window.api.onDone((data) => {
-  if (!currentJobId || data.jobId !== currentJobId) return;
-  setStatus("Listo. Descarga completada.");
-  setRunning(false);
-  currentJobId = null;
-});
-
-window.api.onError((data) => {
-  if (!currentJobId || data.jobId !== currentJobId) return;
-  setStatus(`Error: ${data.message}`);
-  setRunning(false);
-  currentJobId = null;
-});
-
-window.api.onCanceled((data) => {
-  if (!currentJobId || data.jobId !== currentJobId) return;
-  setStatus("Descarga cancelada.");
-  setRunning(false);
-  currentJobId = null;
-});
-
-loadPrefs();
-// Ajustar pickCookiesBtn según modo al cargar
-pickCookiesBtn.disabled = cookiesModeEl.value !== "file";
+// Initialise the UI
+updateFormatOptions();
+kindSelect.addEventListener('change', updateFormatOptions);
+downloadBtn.addEventListener('click', handleDownload);
+convertBtn.addEventListener('click', handleConvert);

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Conversor de Medios</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Conversor de Medios</h1>
+  <div class="container">
+    <label for="input-file">Archivo de entrada:</label>
+    <input id="input-file" type="file" />
+
+    <label for="convert-format">Formato de salida:</label>
+    <select id="convert-format">
+      <option value="mp3">MP3 (audio)</option>
+      <option value="wav">WAV (audio)</option>
+      <option value="mp4">MP4 (video)</option>
+      <option value="mkv">MKV (video)</option>
+      <option value="png">PNG (imagen)</option>
+      <option value="jpg">JPG (imagen)</option>
+    </select>
+
+    <label for="output-file">Archivo de salida:</label>
+    <div class="output-row">
+      <input id="output-file" type="text" placeholder="Ruta de salida" />
+      <button id="browse-output-dir" class="small-btn">Elegir</button>
+    </div>
+
+    <button id="convert-btn" class="primary-btn">Convertir</button>
+    <p id="convert-status" class="status"></p>
+  </div>
+  <script src="convert.js"></script>
+</body>
+</html>
