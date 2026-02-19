@@ -1,6 +1,6 @@
 {
   "name": "yt-downloader-pro-by-krizt",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "YouTube Downloader (Windows) - máxima calidad con yt-dlp + ffmpeg",
   "main": "main.js",
   "author": "Cristian Ruiz",

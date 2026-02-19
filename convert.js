@@ -1,43 +1,45 @@
 // Referencias a elementos DOM
 const inputFile = document.getElementById('input-file');
-const convertFormatSelect = document.getElementById('convert-format');
+const formatSelect = document.getElementById('convert-format');
 const outputFileInput = document.getElementById('output-file');
 const browseOutputDirBtn = document.getElementById('browse-output-dir');
 const convertBtn = document.getElementById('convert-btn');
-const convertStatus = document.getElementById('convert-status');
+const status = document.getElementById('convert-status');
 
-// Selecciona directorio y construye nombre de salida
+// Selección de carpeta y nombre de salida
 browseOutputDirBtn.addEventListener('click', async () => {
   const dir = await window.api.pickOutputDir();
   if (!dir) return;
   const file = inputFile.files && inputFile.files[0];
-  const format = convertFormatSelect.value;
+  const format = formatSelect.value;
   let baseName = 'output';
   if (file && file.name) {
     const parts = file.name.split('.');
     if (parts.length > 1) parts.pop();
     baseName = parts.join('.') || 'output';
   }
-  outputFileInput.value = dir + '/' + baseName + '.' + format;
+  outputFileInput.value = `${dir}/${baseName}.${format}`;
 });
 
-// Convierte el archivo
+// Convierte el archivo seleccionado
 convertBtn.addEventListener('click', async () => {
   const file = inputFile.files && inputFile.files[0];
   if (!file) {
-    convertStatus.textContent = 'Selecciona un archivo de entrada';
+    status.textContent = 'Selecciona un archivo de entrada';
     return;
   }
   const inputPath = file.path;
   const outputPath = outputFileInput.value.trim();
   if (!outputPath) {
-    convertStatus.textContent = 'Ingresa una ruta de salida válida';
+    status.textContent = 'Ingresa una ruta de salida válida';
     return;
   }
-  const fmt = convertFormatSelect.value;
+  const fmt = formatSelect.value;
   let extraArgs = [];
+
   switch (fmt) {
     case 'mp3':
+      // Convierte audio y descarta vídeo
       extraArgs = ['-vn', '-codec:a', 'libmp3lame'];
       break;
     case 'wav':
@@ -45,27 +47,32 @@ convertBtn.addEventListener('click', async () => {
       break;
     case 'mp4':
     case 'mkv':
-      extraArgs = ['-codec', 'copy'];
+      // Recodifica video a h264 y audio a AAC
+      extraArgs = ['-c:v', 'libx264', '-c:a', 'aac'];
       break;
     case 'png':
     case 'jpg':
+      // Toma sólo una imagen del vídeo
       extraArgs = ['-an', '-vframes', '1'];
       break;
     default:
       extraArgs = [];
   }
-  convertStatus.textContent = 'Iniciando conversión...';
+
+  status.textContent = 'Iniciando conversión...';
   try {
     await window.api.convertMedia({ inputPath, outputPath, extraArgs });
-    convertStatus.textContent = 'Conversión completada';
+    status.textContent = 'Conversión completada';
   } catch (err) {
-    convertStatus.textContent = err;
+    status.textContent = err;
   }
 });
 
-// Actualiza progreso
+// Actualiza el progreso de conversión
 window.api.onConvertProgress((progress) => {
   if (progress.percent != null) {
-    convertStatus.textContent = `${progress.percent.toFixed(2)}% • ${progress.speed} • ETA ${progress.eta}`;
+    status.textContent = `${progress.percent.toFixed(
+      2
+    )}% • ${progress.speed} • ETA ${progress.eta}`;
   }
 });
